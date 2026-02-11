@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пельмешка Кликер | pel studio</title>
+<style>
+/* ===== БАЗОВЫЕ СТИЛИ ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #1a0a2e;
+  color: #fff;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* ===== ПУЛЬСАЦИЯ ПОД МУЗЫКУ 125 BPM ===== */
+@keyframes pulse125 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.pulse-active .pulseable {
+  animation: pulse125 0.48s ease-in-out infinite;
+}
+
+/* ===== ЭКРАН ЗАСТАВКИ PEL STUDIO ===== */
+#splash-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d0221, #1a0a2e, #2d1b69);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 10000;
+  transition: opacity 0.8s ease;
+}
+
+#splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash-logo {
+  font-size: 72px;
+  font-weight: 900;
+  background: linear-gradient(45deg, #ff6b6b, #ffa500, #ffdd57, #48dbfb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  animation: logoAppear 1s ease-out;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes logoAppear {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+#splash-sub {
+  font-size: 18px;
+  color: #888;
+  margin-top: 10px;
+  animation: fadeIn 1s ease 0.5s both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#physics-box {
+  width: 500px;
+  height: 300px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 30px;
+  background: rgba(255,255,255,0.03);
+  animation: fadeIn 0.5s ease 0.3s both;
+}
+
+.physics-obj {
+  position: absolute;
+  font-size: 32px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ===== ЭКРАН МУЗЫКИ ===== */
+#music-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d0221, #1a0a2e);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9000;
+  transition: opacity 0.8s ease;
+}
+
+#music-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.music-prompt {
+  font-size: 36px;
+  font-weight: 900;
+  margin-bottom: 40px;
+  animation: fadeIn 0.5s ease;
+}
+
+.music-btn {
+  padding: 18px 50px;
+  margin: 10px;
+  border: none;
+  border-radius: 50px;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+.music-btn:hover {
+  transform: scale(1.1);
+}
+
+.music-yes {
+  background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+  color: white;
+  box-shadow: 0 5px 30px rgba(108,92,231,0.5);
+}
+
+.music-no {
+  background: rgba(255,255,255,0.1);
+  color: #aaa;
+}
+
+/* ===== ГЛАВНОЕ МЕНЮ ===== */
+#main-menu {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d0221, #1a0a2e, #2d1b69);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 8000;
+  transition: opacity 0.8s ease;
+}
+
+#main-menu.fade-out {
+  opacity: 0; pointer-events: none;
+}
+
+.menu-title {
+  font-size: 64px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  animation: floatTitle 3s ease-in-out infinite;
+}
+
+@keyframes floatTitle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.menu-title-emoji {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: spinPelmeshka 4s ease-in-out infinite;
+}
+
+@keyframes spinPelmeshka {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(10deg) scale(1.1); }
+  75% { transform: rotate(-10deg) scale(1.1); }
+}
+
+.menu-btn {
+  padding: 16px 60px;
+  margin: 8px;
+  border: none;
+  border-radius: 50px;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-family: 'Nunito', sans-serif;
+  position: relative;
+  overflow: hidden;
+  min-width: 300px;
+}
+
+.menu-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.5s;
+}
+
+.menu-btn:hover::after {
+  left: 100%;
+}
+
+.menu-btn:hover {
+  transform: scale(1.08) translateY(-3px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.menu-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-play {
+  background: linear-gradient(45deg, #00b894, #00cec9);
+  color: white;
+  font-size: 24px;
+  padding: 20px 60px;
+  box-shadow: 0 5px 30px rgba(0,184,148,0.4);
+}
+
+.btn-settings {
+  background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+  color: white;
+  box-shadow: 0 5px 30px rgba(108,92,231,0.3);
+}
+
+.btn-about {
+  background: linear-gradient(45deg, #fd79a8, #e84393);
+  color: white;
+  box-shadow: 0 5px 30px rgba(232,67,147,0.3);
+}
+
+.btn-love {
+  background: linear-gradient(45deg, #fdcb6e, #f39c12);
+  color: #333;
+  box-shadow: 0 5px 30px rgba(243,156,18,0.3);
+  animation: loveGlow 2s ease-in-out infinite;
+}
+
+@keyframes loveGlow {
+  0%, 100% { box-shadow: 0 5px 30px rgba(243,156,18,0.3); }
+  50% { box-shadow: 0 5px 50px rgba(243,156,18,0.6); }
+}
+
+/* ===== НАСТРОЙКИ (МОДАЛКА) ===== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none; align-items: center; justify-content: center;
+  z-index: 15000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: linear-gradient(135deg, #2d1b69, #1a0a2e);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 30px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal h2 {
+  font-size: 32px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.setting-row label {
+  font-size: 16px;
+}
+
+.toggle {
+  width: 56px; height: 28px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.toggle.active {
+  background: #00b894;
+}
+
+.toggle::after {
+  content: '';
+  width: 24px; height: 24px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle.active::after {
+  transform: translateX(28px);
+}
+
+.modal-close {
+  display: block;
+  margin: 20px auto 0;
+  padding: 12px 40px;
+  background: linear-gradient(45deg, #e17055, #d63031);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: transform 0.3s;
+}
+
+.modal-close:hover {
+  transform: scale(1.1);
+}
+
+/* ===== СЕЙВЫ (МОДАЛКА) ===== */
+.save-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.save-slot {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 15px;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.save-slot:hover {
+  border-color: #6c5ce7;
+  background: rgba(108,92,231,0.1);
+  transform: translateX(5px);
+}
+
+.save-slot-info h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.save-slot-info p {
+  font-size: 13px;
+  color: #888;
+}
+
+.save-slot-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-slot-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: transform 0.2s;
+}
+
+.save-slot-actions button:hover {
+  transform: scale(1.1);
+}
+
+.btn-load { background: #00b894; color: white; }
+.btn-save-slot { background: #6c5ce7; color: white; }
+.btn-delete { background: #d63031; color: white; }
+
+/* ===== ИГРОВОЙ ЭКРАН ===== */
+#game-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d0221, #1a0a2e);
+  display: none;
+  z-index: 7000;
+}
+
+#game-screen.active {
+  display: flex;
+}
+
+/* Верхняя панель */
+.game-top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 60px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.game-stats {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.stat-value {
+  font-weight: 900;
+  font-size: 20px;
+  color: #fdcb6e;
+}
+
+.game-top-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.top-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.3s;
+}
+
+.top-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+
+/* Основная игровая зона */
+.game-main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding-top: 60px;
+}
+
+/* Левая панель — магазин */
+.shop-panel {
+  width: 320px;
+  background: rgba(0,0,0,0.2);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.shop-panel h2 {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #fdcb6e;
+}
+
+.shop-item {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 15px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.shop-item:hover {
+  border-color: #fdcb6e;
+  background: rgba(253,203,110,0.05);
+  transform: translateX(3px);
+}
+
+.shop-item.cant-afford {
+  opacity: 0.5;
+}
+
+.shop-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shop-item-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.shop-item-cost {
+  color: #fdcb6e;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.shop-item-desc {
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
+}
+
+.shop-item-owned {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: rgba(108,92,231,0.3);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Центр — пельмешка */
+.game-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#pelmeshka-container {
+  position: relative;
+  cursor: pointer;
+}
+
+#pelmeshka {
+  font-size: 150px;
+  transition: font-size 0.5s ease;
+  filter: drop-shadow(0 0 30px rgba(253,203,110,0.3));
+  animation: pelmFloat 3s ease-in-out infinite;
+}
+
+@keyframes pelmFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+#pelmeshka:active {
+  animation: none;
+  transform: scale(0.9);
+}
+
+.click-particle {
+  position: absolute;
+  pointer-events: none;
+  font-weight: 900;
+  color: #fdcb6e;
+  animation: particleFly 1s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes particleFly {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-100px) scale(0.5); }
+}
+
+.click-emoji-particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 30px;
+  animation: emojiPop 0.8s ease-out forwards;
+  z-index: 999;
+}
+
+@keyframes emojiPop {
+  0% { opacity: 1; transform: translate(0,0) scale(0.5) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--rot)); }
+}
+
+.pelmeshka-size-label {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #888;
+}
+
+.per-second {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.eat-btn {
+  margin-top: 20px;
+  padding: 15px 40px;
+  background: linear-gradient(45deg, #e17055, #d63031);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  display: none;
+  animation: eatPulse 1s ease-in-out infinite;
+  transition: all 0.3s;
+}
+
+.eat-btn:hover {
+  transform: scale(1.1);
+}
+
+.eat-btn.visible {
+  display: block;
+}
+
+@keyframes eatPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(214,48,49,0.3); }
+  50% { box-shadow: 0 0 40px rgba(214,48,49,0.6); }
+}
+
+/* Правая панель */
+.right-panel {
+  width: 320px;
+  background: rgba(0,0,0,0.2);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  overflow-y: auto;
+  padding: 15px;
+}
+
+/* Табы */
+.tab-buttons {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  color: #888;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.3s;
+}
+
+.tab-btn.active {
+  background: #6c5ce7;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Достижения */
+.achievement {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+
+.achievement.unlocked {
+  border-color: #00b894;
+  background: rgba(0,184,148,0.05);
+}
+
+.achievement.rarity-normal { border-left: 4px solid #b2bec3; }
+.achievement.rarity-rare { border-left: 4px solid #6c5ce7; }
+.achievement.rarity-legendary { border-left: 4px solid #fdcb6e; }
+
+.achievement.unlocked.rarity-normal { border-left-color: #00b894; border-color: #00b894; }
+.achievement.unlocked.rarity-rare { border-left-color: #6c5ce7; border-color: #6c5ce7; }
+.achievement.unlocked.rarity-legendary { border-left-color: #fdcb6e; border-color: #fdcb6e; }
+
+.achievement-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.achievement-desc {
+  font-size: 12px;
+  color: #888;
+}
+
+.achievement-rarity {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.rarity-normal .achievement-rarity { color: #b2bec3; }
+.rarity-rare .achievement-rarity { color: #6c5ce7; }
+.rarity-legendary .achievement-rarity { color: #fdcb6e; }
+
+/* Уведомление о достижении */
+.achievement-popup {
+  position: fixed;
+  top: 80px;
+  right: -400px;
+  background: linear-gradient(135deg, #2d1b69, #1a0a2e);
+  border: 2px solid #fdcb6e;
+  border-radius: 15px;
+  padding: 15px 25px;
+  z-index: 20000;
+  transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 40px rgba(253,203,110,0.3);
+  min-width: 300px;
+}
+
+.achievement-popup.show {
+  right: 20px;
+}
+
+.achievement-popup h3 {
+  color: #fdcb6e;
+  margin-bottom: 5px;
+}
+
+/* Тост */
+.toast {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-weight: 700;
+  z-index: 20000;
+  transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.toast.show {
+  bottom: 30px;
+}
+
+/* Фоновые частицы */
+.bg-particle {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.1;
+  animation: bgFloat linear infinite;
+  z-index: 0;
+}
+
+@keyframes bgFloat {
+  0% { transform: translateY(100vh) rotate(0deg); }
+  100% { transform: translateY(-100px) rotate(360deg); }
+}
+
+/* Скроллбар */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+/* Достижение разблокировано анимация */
+@keyframes achievementUnlock {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); background: rgba(253,203,110,0.1); }
+  100% { transform: scale(1); }
+}
+
+.achievement.just-unlocked {
+  animation: achievementUnlock 0.5s ease;
+}
+
+/* Съедание */
+@keyframes eatAnimation {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.eating #pelmeshka {
+  animation: eatAnimation 1s ease-in-out forwards;
+}
+
+/* Комбо */
+.combo-display {
+  position: absolute;
+  top: -40px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #ff6b6b;
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+.combo-display.active {
+  opacity: 1;
+  animation: comboShake 0.3s ease;
+}
+
+@keyframes comboShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Золотая пельмешка */
+.golden-pelmeshka {
+  position: fixed;
+  font-size: 50px;
+  cursor: pointer;
+  z-index: 500;
+  animation: goldenFloat 3s ease-in-out infinite, goldenGlow 1s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px gold);
+  transition: transform 0.2s;
+}
+
+.golden-pelmeshka:hover {
+  transform: scale(1.3);
+}
+
+@keyframes goldenFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+@keyframes goldenGlow {
+  0%, 100% { filter: drop-shadow(0 0 20px gold); }
+  50% { filter: drop-shadow(0 0 40px gold) brightness(1.3); }
+}
+
+/* Ёжик на экране */
+.hedgehog-helper {
+  position: absolute;
+  font-size: 40px;
+  bottom: 20px;
+  animation: hedgehogWalk 8s linear infinite;
+}
+
+@keyframes hedgehogWalk {
+  0% { left: -50px; }
+  100% { left: calc(100% + 50px); }
+}
+
+/* Prestige bar */
+.prestige-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.3);
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-size: 14px;
+  color: #888;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 900px) {
+  .shop-panel, .right-panel {
+    display: none;
+  }
+  .game-center {
+    width: 100%;
+  }
+  #splash-logo { font-size: 48px; }
+  #physics-box { width: 90%; height: 200px; }
+  .menu-title { font-size: 40px; }
+  .menu-btn { min-width: 250px; font-size: 16px; }
+}
+
+/* Вкладки мобильные */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  z-index: 200;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+@media (max-width: 900px) {
+  .mobile-nav { display: flex; }
+  .game-main { padding-bottom: 60px; }
+}
+
+.mobile-nav-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  font-family: 'Nunito';
+  transition: color 0.3s;
+}
+
+.mobile-nav-btn.active { color: #fdcb6e; }
+
+/* Мобильные панели оверлей */
+.mobile-panel-overlay {
+  display: none;
+  position: fixed;
+  top: 60px; left: 0; right: 0; bottom: 60px;
+  background: rgba(13,2,33,0.98);
+  z-index: 150;
+  overflow-y: auto;
+  padding: 15px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.mobile-panel-overlay.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ===== АУДИО ===== -->
+<audio id="bg-music" loop>
+  <source src="musicpho.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ===== ЗАСТАВКА PEL STUDIO ===== -->
+<div id="splash-screen">
+  <div id="splash-logo" class="pulseable">pel studio</div>
+  <div id="splash-sub">presents...</div>
+  <div id="physics-box"></div>
+</div>
+
+<!-- ===== ЭКРАН МУЗЫКИ ===== -->
+<div id="music-screen">
+  <div class="music-prompt pulseable">Включить фоновую музыку? 🎧</div>
+  <div>
+    <button class="music-btn music-yes pulseable" onclick="enableMusic()">Да, врубай! 🔊</button>
+    <button class="music-btn music-no pulseable" onclick="skipMusic()">Нет, тишина 🔇</button>
+  </div>
+</div>
+
+<!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
+<div id="main-menu">
+  <div class="menu-title-emoji pulseable">🥟</div>
+  <div class="menu-title pulseable">ПЕЛЬМЕШКА</div>
+  <div style="color:#888; margin-bottom:30px; font-size:18px;" class="pulseable">кликер</div>
+  <button class="menu-btn btn-play pulseable" onclick="startGame()">▶ ИГРАТЬ</button>
+  <button class="menu-btn btn-settings pulseable" onclick="openSettings()">⚙ Настройки</button>
+  <button class="menu-btn btn-about pulseable" onclick="showToast('Об авторе? Ну... может потом 😏')">👤 Об авторе</button>
+  <button class="menu-btn btn-love pulseable" onclick="lovePelmeshki()">❤️ Я люблю пельмешки</button>
+</div>
+
+<!-- ===== МОДАЛКИ ===== -->
+<!-- Настройки -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>⚙ Настройки</h2>
+    <div class="setting-row">
+      <label>🎵 Фоновая музыка</label>
+      <div class="toggle active" id="toggle-music" onclick="toggleSetting('music')"></div>
+    </div>
+    <div class="setting-row">
+      <label>💓 Пульсация (125 BPM)</label>
+      <div class="toggle active" id="toggle-pulse" onclick="toggleSetting('pulse')"></div>
+    </div>
+    <div class="setting-row">
+      <label>✨ Частицы при клике</label>
+      <div class="toggle active" id="toggle-particles" onclick="toggleSetting('particles')"></div>
+    </div>
+    <div class="setting-row">
+      <label>🔔 Уведомления достижений</label>
+      <div class="toggle active" id="toggle-notifs" onclick="toggleSetting('notifs')"></div>
+    </div>
+    <button class="modal-close" onclick="closeModal('settings-modal')">Закрыть</button>
+  </div>
+</div>
+
+<!-- Сохранения -->
+<div class="modal-overlay" id="saves-modal">
+  <div class="modal">
+    <h2>💾 Слоты сохранений</h2>
+    <div class="save-slots" id="save-slots-container"></div>
+    <button class="modal-close" onclick="closeModal('saves-modal')">Закрыть</button>
+  </div>
+</div>
+
+<!-- Достижения (полный экран) -->
+<div class="modal-overlay" id="achievements-modal">
+  <div class="modal" style="max-width:600px; max-height:85vh;">
+    <h2>🏆 Достижения</h2>
+    <div id="achievements-list"></div>
+    <button class="modal-close" onclick="closeModal('achievements-modal')">Закрыть</button>
+  </div>
+</div>
+
+<!-- ===== ИГРОВОЙ ЭКРАН ===== -->
+<div id="game-screen">
+  <div class="game-top-bar">
+    <div class="game-stats">
+      <div class="stat">
+        <span>🥟</span>
+        <span class="stat-value" id="pelm-count">0</span>
+      </div>
+      <div class="stat">
+        <span>⚡</span>
+        <span class="stat-value" id="pelm-per-click">1</span>
+        <span style="color:#888;font-size:12px;">/клик</span>
+      </div>
+      <div class="stat">
+        <span>🔄</span>
+        <span class="stat-value" id="pelm-per-sec">0</span>
+        <span style="color:#888;font-size:12px;">/сек</span>
+      </div>
+    </div>
+    <div class="game-top-buttons">
+      <button class="top-btn" onclick="openSaves()">💾</button>
+      <button class="top-btn" onclick="openAchievementsModal()">🏆</button>
+      <button class="top-btn" onclick="openSettings()">⚙</button>
+      <button class="top-btn" onclick="backToMenu()">🏠</button>
+    </div>
+  </div>
+
+  <div class="game-main">
+    <!-- Магазин -->
+    <div class="shop-panel">
+      <h2 class="pulseable">🛒 Магазин</h2>
+      <div id="shop-items"></div>
+    </div>
+
+    <!-- Центр -->
+    <div class="game-center">
+      <div id="pelmeshka-container">
+        <div class="combo-display" id="combo-display">COMBO x1</div>
+        <div id="pelmeshka" class="pulseable" onclick="clickPelmeshka(event)">🥟</div>
+      </div>
+      <div class="pelmeshka-size-label">Размер: <span id="pelm-size">Малюсенькая</span></div>
+      <div class="per-second">Всего налеплено: <span id="total-pelm">0</span></div>
+      <button class="eat-btn" id="eat-btn" onclick="eatPelmeshka()">🍽 СЪЕСТЬ ПЕЛЬМЕШКУ!</button>
+      <div class="prestige-bar">
+        🦔 Ёжиков: <span id="hedgehog-count">0</span> | 
+        Множитель: x<span id="prestige-mult">1</span>
+      </div>
+    </div>
+
+    <!-- Правая панель -->
+    <div class="right-panel">
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('tab-achievements')">🏆</button>
+        <button class="tab-btn" onclick="switchTab('tab-stats')">📊</button>
+        <button class="tab-btn" onclick="switchTab('tab-hedgehogs')">🦔</button>
+      </div>
+      <div class="tab-content active" id="tab-achievements">
+        <div id="achievements-sidebar"></div>
+      </div>
+      <div class="tab-content" id="tab-stats">
+        <h3 style="margin-bottom:15px;">📊 Статистика</h3>
+        <div style="font-size:14px; color:#888; line-height:2;">
+          <div>Всего кликов: <span id="stat-clicks" style="color:#fdcb6e;">0</span></div>
+          <div>Всего пельмешек: <span id="stat-total" style="color:#fdcb6e;">0</span></div>
+          <div>Съедено: <span id="stat-eaten" style="color:#fdcb6e;">0</span></div>
+          <div>Золотых поймано: <span id="stat-golden" style="color:#fdcb6e;">0</span></div>
+          <div>Время в игре: <span id="stat-time" style="color:#fdcb6e;">0:00</span></div>
+          <div>Макс. комбо: <span id="stat-combo" style="color:#fdcb6e;">0</span></div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-hedgehogs">
+        <h3 style="margin-bottom:15px;">🦔 Ёжиковая ферма</h3>
+        <div id="hedgehog-upgrades"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Мобильная навигация -->
+  <div class="mobile-nav">
+    <button class="mobile-nav-btn" onclick="showMobilePanel('shop')">🛒</button>
+    <button class="mobile-nav-btn active" onclick="hideMobilePanels()">🥟</button>
+    <button class="mobile-nav-btn" onclick="showMobilePanel('achievements')">🏆</button>
+    <button class="mobile-nav-btn" onclick="showMobilePanel('hedgehogs')">🦔</button>
+  </div>
+
+  <!-- Мобильные оверлеи -->
+  <div class="mobile-panel-overlay" id="mobile-shop"></div>
+  <div class="mobile-panel-overlay" id="mobile-achievements"></div>
+  <div class="mobile-panel-overlay" id="mobile-hedgehogs"></div>
+</div>
+
+<!-- Попап достижения -->
+<div class="achievement-popup" id="achievement-popup">
+  <h3>🏆 Достижение!</h3>
+  <div id="achievement-popup-text"></div>
+</div>
+
+<!-- Тост -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== СОСТОЯНИЕ ИГРЫ =====
+let gameState = {
+  pelmeshki: 0,
+  totalPelmeshki: 0,
+  totalClicks: 0,
+  perClick: 1,
+  perSecond: 0,
+  pelmeshkaSize: 0,
+  eaten: 0,
+  hedgehogs: 0,
+  prestigeMult: 1,
+  goldenCaught: 0,
+  maxCombo: 0,
+  combo: 0,
+  comboTimer: null,
+  lastClickTime: 0,
+  startTime: Date.now(),
+  achievements: {},
+  shopOwned: {},
+  hedgehogOwned: {},
+  lovePelmeshkiClicked: false,
+  settings: {
+    music: true,
+    pulse: true,
+    particles: true,
+    notifs: true
+  }
+};
+
+// ===== ДОСТИЖЕНИЯ =====
+const ACHIEVEMENTS = [
+  // НОРМАЛЬНЫЕ (видно всё)
+  { id: 'first_click', name: 'Первый тык', desc: 'Кликни на пельмешку', rarity: 'normal', check: s => s.totalClicks >= 1 },
+  { id: 'click_100', name: 'Тыкальщик', desc: 'Кликни 100 раз', rarity: 'normal', check: s => s.totalClicks >= 100 },
+  { id: 'click_1000', name: 'Палец-молот', desc: 'Кликни 1000 раз', rarity: 'normal', check: s => s.totalClicks >= 1000 },
+  { id: 'pelm_100', name: 'Пельменная', desc: 'Накопи 100 пельмешек', rarity: 'normal', check: s => s.totalPelmeshki >= 100 },
+  { id: 'pelm_1000', name: 'Пельменный завод', desc: 'Накопи 1000 пельмешек', rarity: 'normal', check: s => s.totalPelmeshki >= 1000 },
+  { id: 'pelm_10000', name: 'Пельменная империя', desc: 'Накопи 10000 пельмешек', rarity: 'normal', check: s => s.totalPelmeshki >= 10000 },
+  { id: 'first_buy', name: 'Шопоголик', desc: 'Купи первый предмет в магазине', rarity: 'normal', check: s => Object.values(s.shopOwned).some(v => v > 0) },
+  { id: 'eat_1', name: 'Ням!', desc: 'Съешь первую пельмешку', rarity: 'normal', check: s => s.eaten >= 1 },
+  { id: 'eat_5', name: 'Обжора', desc: 'Съешь 5 пельмешек', rarity: 'normal', check: s => s.eaten >= 5 },
+  { id: 'combo_5', name: 'Комбо!', desc: 'Набери комбо x5', rarity: 'normal', check: s => s.maxCombo >= 5 },
+  // РЕДКИЕ (видно как получить, название скрыто)
+  { id: 'click_5000', name: 'Неудержимый палец', desc: 'Кликни 5000 раз', rarity: 'rare', check: s => s.totalClicks >= 5000 },
+  { id: 'pelm_100000', name: 'Пельменный магнат', desc: 'Накопи 100000 пельмешек', rarity: 'rare', check: s => s.totalPelmeshki >= 100000 },
+  { id: 'eat_10', name: 'Бездонный желудок', desc: 'Съешь 10 пельмешек', rarity: 'rare', check: s => s.eaten >= 10 },
+  { id: 'hedgehog_1', name: 'Друг ёжик', desc: 'Получи первого ёжика', rarity: 'rare', check: s => s.hedgehogs >= 1 },
+  { id: 'hedgehog_5', name: 'Ёжиковод', desc: 'Имей 5 ёжиков', rarity: 'rare', check: s => s.hedgehogs >= 5 },
+  { id: 'combo_15', name: 'Комбо-мастер', desc: 'Набери комбо x15', rarity: 'rare', check: s => s.maxCombo >= 15 },
+  { id: 'golden_1', name: 'Золотая удача', desc: 'Поймай золотую пельмешку', rarity: 'rare', check: s => s.goldenCaught >= 1 },
+  { id: 'golden_5', name: 'Золотой охотник', desc: 'Поймай 5 золотых пельмешек', rarity: 'rare', check: s => s.goldenCaught >= 5 },
+  // ЛЕГЕНДАРНЫЕ (всё скрыто)
+  { id: 'click_10000', name: 'ЛЕГЕНДА КЛИКОВ', desc: 'Кликни 10000 раз', rarity: 'legendary', check: s => s.totalClicks >= 10000 },
+  { id: 'pelm_1000000', name: 'ПЕЛЬМЕННЫЙ БОГ', desc: 'Накопи 1000000 пельмешек', rarity: 'legendary', check: s => s.totalPelmeshki >= 1000000 },
+  { id: 'eat_25', name: 'ЧЁРНАЯ ДЫРА', desc: 'Съешь 25 пельмешек', rarity: 'legendary', check: s => s.eaten >= 25 },
+  { id: 'combo_30', name: 'БЕЗУМНОЕ КОМБО', desc: 'Набери комбо x30', rarity: 'legendary', check: s => s.maxCombo >= 30 },
+  { id: 'hedgehog_10', name: 'ПОВЕЛИТЕЛЬ ЕЖЕЙ', desc: 'Имей 10 ёжиков', rarity: 'legendary', check: s => s.hedgehogs >= 10 },
+  { id: 'golden_10', name: 'ЗОЛОТОЙ БОГ', desc: 'Поймай 10 золотых пельмешек', rarity: 'legendary', check: s => s.goldenCaught >= 10 },
+  { id: 'love', name: '❤️ ИСТИННАЯ ЛЮБОВЬ', desc: 'Ты правда любишь пельмешки', rarity: 'legendary', check: s => s.lovePelmeshkiClicked }
+];
+
+// ===== МАГАЗИН =====
+const SHOP_ITEMS = [
+  { id: 'rolling_pin', name: '🪵 Скалка', desc: '+1 к клику', baseCost: 15, perClick: 1, perSec: 0, growth: 1.15 },
+  { id: 'babushka', name: '👵 Бабушка', desc: '+1 пельмешка/сек', baseCost: 100, perClick: 0, perSec: 1, growth: 1.15 },
+  { id: 'kitchen', name: '🍳 Кухня', desc: '+3 к клику', baseCost: 250, perClick: 3, perSec: 0, growth: 1.15 },
+  { id: 'factory', name: '🏭 Фабрика', desc: '+5 пельмешек/сек', baseCost: 500, perClick: 0, perSec: 5, growth: 1.15 },
+  { id: 'robot', name: '🤖 Робот-лепщик', desc: '+10 к клику', baseCost: 1500, perClick: 10, perSec: 0, growth: 1.2 },
+  { id: 'conveyor', name: '⚙️ Конвейер', desc: '+20 пельмешек/сек', baseCost: 3000, perClick: 0, perSec: 20, growth: 1.2 },
+  { id: 'magic_flour', name: '✨ Волшебная мука', desc: '+25 к клику', baseCost: 8000, perClick: 25, perSec: 0, growth: 1.2 },
+  { id: 'pelm_portal', name: '🌀 Пельменный портал', desc: '+50 пельмешек/сек', baseCost: 15000, perClick: 0, perSec: 50, growth: 1.25 },
+  { id: 'time_machine', name: '⏰ Машина времени', desc: '+100 к клику', baseCost: 50000, perClick: 100, perSec: 0, growth: 1.25 },
+  { id: 'pelm_dimension', name: '🌌 Пельменное измерение', desc: '+200 пельмешек/сек', baseCost: 100000, perClick: 0, perSec: 200, growth: 1.3 },
+  { id: 'black_hole', name: '🕳 Пельменная чёрная дыра', desc: '+500 к клику, +100/сек', baseCost: 500000, perClick: 500, perSec: 100, growth: 1.35 },
+  { id: 'god_hands', name: '🙌 Руки бога пельменей', desc: '+2000 к клику, +500/сек', baseCost: 2000000, perClick: 2000, perSec: 500, growth: 1.4 },
+];
+
+// ===== ЁЖИКОВЫЕ АПГРЕЙДЫ =====
+const HEDGEHOG_UPGRADES = [
+  { id: 'hedgehog_farm', name: '🦔 Ёжиковая ферма', desc: 'Ёжик приносит +2/сек', cost: 2000, perSec: 2, hedgehogs: 1 },
+  { id: 'hedgehog_army', name: '🦔🦔 Армия ежей', desc: '+5 ёжиков, каждый +5/сек', cost: 10000, perSec: 25, hedgehogs: 5 },
+  { id: 'hedgehog_king', name: '👑 Король ежей', desc: 'x2 ко всему от ежей', cost: 50000, perSec: 50, hedgehogs: 2, mult: 2 },
+  { id: 'hedgehog_dimension', name: '🌀 Ёжиковое измерение', desc: '+10 ёжиков, мега бонус', cost: 200000, perSec: 200, hedgehogs: 10 },
+  { id: 'hedgehog_god', name: '⚡ Ёжик-бог', desc: 'Ёжики дают x3 ко всему', cost: 1000000, perSec: 500, hedgehogs: 5, mult: 3 },
+];
+
+// ===== РАЗМЕРЫ ПЕЛЬМЕШКИ =====
+const PELM_SIZES = [
+  { name: 'Малюсенькая', minTotal: 0, fontSize: 150, eatAt: null },
+  { name: 'Маленькая', minTotal: 100, fontSize: 170, eatAt: null },
+  { name: 'Средняя', minTotal: 500, fontSize: 190, eatAt: 1000 },
+  { name: 'Большая', minTotal: 2000, fontSize: 220, eatAt: 5000 },
+  { name: 'Огромная', minTotal: 10000, fontSize: 250, eatAt: 20000 },
+  { name: 'Гигантская', minTotal: 50000, fontSize: 280, eatAt: 100000 },
+  { name: 'МЕГА', minTotal: 200000, fontSize: 310, eatAt: 500000 },
+  { name: 'УЛЬТРА', minTotal: 1000000, fontSize: 340, eatAt: 2000000 },
+  { name: '🌟 ЛЕГЕНДАРНАЯ', minTotal: 5000000, fontSize: 370, eatAt: 10000000 },
+];
+
+// ===== ФИЗИКА ЗАСТАВКИ =====
+class PhysicsEngine {
+  constructor(container) {
+    this.container = container;
+    this.objects = [];
+    this.gravity = 0.5;
+    this.bounce = 0.7;
+    this.friction = 0.99;
+    this.width = container.offsetWidth;
+    this.height = container.offsetHeight;
+    this.running = true;
+  }
+
+  addObject(emoji) {
+    const obj = {
+      x: Math.random() * (this.width - 40) + 20,
+      y: -40 - Math.random() * 200,
+      vx: (Math.random() - 0.5) * 8,
+      vy: Math.random() * 2,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10,
+      size: 28 + Math.random() * 16,
+      emoji: emoji,
+      el: null
+    };
+
+    const el = document.createElement('div');
+    el.className = 'physics-obj';
+    el.textContent = emoji;
+    el.style.fontSize = obj.size + 'px';
+    this.container.appendChild(el);
+    obj.el = el;
+    this.objects.push(obj);
+  }
+
+  update() {
+    if (!this.running) return;
+
+    this.objects.forEach(obj => {
+      obj.vy += this.gravity;
+      obj.vx *= this.friction;
+      obj.x += obj.vx;
+      obj.y += obj.vy;
+      obj.rotation += obj.rotSpeed;
+
+      // Стены
+      if (obj.x < 10) { obj.x = 10; obj.vx *= -this.bounce; }
+      if (obj.x > this.width - 40) { obj.x = this.width - 40; obj.vx *= -this.bounce; }
+
+      // Пол
+      if (obj.y > this.height - 40) {
+        obj.y = this.height - 40;
+        obj.vy *= -this.bounce;
+        obj.rotSpeed *= 0.95;
+        if (Math.abs(obj.vy) < 1) obj.vy = 0;
+      }
+
+      // Столкновения между объектами
+      this.objects.forEach(other => {
+        if (other === obj) return;
+        const dx = other.x - obj.x;
+        const dy = other.y - obj.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 35 && dist > 0) {
+          const nx = dx/dist;
+          const ny = dy/dist;
+          const overlap = 35 - dist;
+          obj.x -= nx * overlap * 0.5;
+          obj.y -= ny * overlap * 0.5;
+          other.x += nx * overlap * 0.5;
+          other.y += ny * overlap * 0.5;
+
+          const dvx = obj.vx - other.vx;
+          const dvy = obj.vy - other.vy;
+          const dvn = dvx*nx + dvy*ny;
+
+          if (dvn > 0) {
+            obj.vx -= dvn * nx * 0.5;
+            obj.vy -= dvn * ny * 0.5;
+            other.vx += dvn * nx * 0.5;
+            other.vy += dvn * ny * 0.5;
+          }
+        }
+      });
+
+      obj.el.style.transform = `translate(${obj.x}px, ${obj.y}px) rotate(${obj.rotation}deg)`;
+    });
+
+    requestAnimationFrame(() => this.update());
+  }
+
+  stop() {
+    this.running = false;
+  }
+}
+
+// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+let physics = null;
+let gameLoop = null;
+let goldenTimer = null;
+let bgParticles = [];
+
+// ===== ЗАСТАВКА =====
+function initSplash() {
+  const box = document.getElementById('physics-box');
+  physics = new PhysicsEngine(box);
+  physics.update();
+
+  const emojis = ['🥟','🥟','🥟','🥟','🥟','🦔','🦔','🦔','🥟','🦔','🥟','🥟','🦔','🥟','🥟'];
+  let i = 0;
+  const dropInterval = setInterval(() => {
+    if (i < emojis.length) {
+      physics.addObject(emojis[i]);
+      i++;
+    } else {
+      clearInterval(dropInterval);
+    }
+  }, 200);
+
+  setTimeout(() => {
+    document.getElementById('splash-screen').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('splash-screen').style.display = 'none';
+      physics.stop();
+      showMusicScreen();
+    }, 800);
+  }, 4000);
+}
+
+// ===== МУЗЫКА =====
+function showMusicScreen() {
+  document.getElementById('music-screen').style.display = 'flex';
+}
+
+function enableMusic() {
+  gameState.settings.music = true;
+  const music = document.getElementById('bg-music');
+  music.volume = 0.3;
+  music.play().catch(() => {});
+  goToMenu();
+}
+
+function skipMusic() {
+  gameState.settings.music = false;
+  document.getElementById('toggle-music').classList.remove('active');
+  goToMenu();
+}
+
+function goToMenu() {
+  document.getElementById('music-screen').classList.add('fade-out');
+  setTimeout(() => {
+    document.getElementById('music-screen').style.display = 'none';
+    showMainMenu();
+  }, 800);
+}
+
+// ===== ГЛАВНОЕ МЕНЮ =====
+function showMainMenu() {
+  document.getElementById('main-menu').style.display = 'flex';
+  document.getElementById('main-menu').classList.remove('fade-out');
+  if (gameState.settings.pulse) {
+    document.body.classList.add('pulse-active');
+  }
+  createBgParticles();
+}
+
+function lovePelmeshki() {
+  gameState.lovePelmeshkiClicked = true;
+  showToast('❤️ Пельмешки тоже тебя любят! Достижения активированы!');
+  checkAchievements();
+}
+
+// ===== НАСТРОЙКИ =====
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('active');
+  syncSettingsUI();
+}
+
+function syncSettingsUI() {
+  const m = document.getElementById('toggle-music');
+  const p = document.getElementById('toggle-pulse');
+  const pa = document.getElementById('toggle-particles');
+  const n = document.getElementById('toggle-notifs');
+
+  m.classList.toggle('active', gameState.settings.music);
+  p.classList.toggle('active', gameState.settings.pulse);
+  pa.classList.toggle('active', gameState.settings.particles);
+  n.classList.toggle('active', gameState.settings.notifs);
+}
+
+function toggleSetting(setting) {
+  gameState.settings[setting] = !gameState.settings[setting];
+  syncSettingsUI();
+
+  if (setting === 'music') {
+    const music = document.getElementById('bg-music');
+    if (gameState.settings.music) {
+      music.volume = 0.3;
+      music.play().catch(() => {});
+    } else {
+      music.pause();
+    }
+  }
+
+  if (setting === 'pulse') {
+    document.body.classList.toggle('pulse-active', gameState.settings.pulse);
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ===== СОХРАНЕНИЯ =====
+function openSaves() {
+  renderSaveSlots();
+  document.getElementById('saves-modal').classList.add('active');
+}
+
+function renderSaveSlots() {
+  const container = document.getElementById('save-slots-container');
+  container.innerHTML = '';
+
+  for (let i = 1; i <= 5; i++) {
+    const saveData = localStorage.getItem(`pelm_save_${i}`);
+    const slot = document.createElement('div');
+    slot.className = 'save-slot';
+
+    if (saveData) {
+      const data = JSON.parse(saveData);
+      slot.innerHTML = `
+        <div class="save-slot-info">
+          <h3>Слот ${i} 💾</h3>
+          <p>🥟 ${formatNumber(data.totalPelmeshki)} пельмешек | 🦔 ${data.hedgehogs} ежей</p>
+          <p>${new Date(data.saveTime).toLocaleString()}</p>
+        </div>
+        <div class="save-slot-actions">
+          <button class="btn-load" onclick="loadGame(${i})">📂</button>
+          <button class="btn-save-slot" onclick="saveGame(${i})">💾</button>
+          <button class="btn-delete" onclick="deleteSave(${i})">🗑</button>
+        </div>
+      `;
+    } else {
+      slot.innerHTML = `
+        <div class="save-slot-info">
+          <h3>Слот ${i}</h3>
+          <p style="color:#555;">Пустой слот</p>
+        </div>
+        <div class="save-slot-actions">
+          <button class="btn-save-slot" onclick="saveGame(${i})">💾 Сохранить</button>
+        </div>
+      `;
+    }
+
+    container.appendChild(slot);
+  }
+}
+
+function saveGame(slot) {
+  const saveData = { ...gameState, saveTime: Date.now() };
+  localStorage.setItem(`pelm_save_${slot}`, JSON.stringify(saveData));
+  showToast(`💾 Сохранено в слот ${slot}!`);
+  renderSaveSlots();
+}
+
+function loadGame(slot) {
+  const saveData = localStorage.getItem(`pelm_save_${slot}`);
+  if (saveData) {
+    const data = JSON.parse(saveData);
+    // Сохраняем таймеры и ссылки
+    const combo = gameState.combo;
+    const comboTimer = gameState.comboTimer;
+    Object.assign(gameState, data);
+    gameState.comboTimer = comboTimer;
+    showToast(`📂 Загружено из слота ${slot}!`);
+    updateAllUI();
+    closeModal('saves-modal');
+  }
+}
+
+function deleteSave(slot) {
+  localStorage.removeItem(`pelm_save_${slot}`);
+  showToast(`🗑 Слот ${slot} удалён!`);
+  renderSaveSlots();
+}
+
+// ===== НАЧАЛО ИГРЫ =====
+function startGame() {
+  document.getElementById('main-menu').classList.add('fade-out');
+  setTimeout(() => {
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-screen').classList.add('active');
+    initGameUI();
+    startGameLoop();
+    startGoldenPelmeshka();
+  }, 800);
+}
+
+function backToMenu() {
+  document.getElementById('game-screen').classList.remove('active');
+  if (gameLoop) clearInterval(gameLoop);
+  if (goldenTimer) clearInterval(goldenTimer);
+  showMainMenu();
+}
+
+// ===== ИНИЦИАЛИЗАЦИЯ UI =====
+function initGameUI() {
+  renderShop();
+  renderHedgehogUpgrades();
+  renderAchievements();
+  updateAllUI();
+}
+
+// ===== МАГАЗИН =====
+function renderShop() {
+  const container = document.getElementById('shop-items');
+  container.innerHTML = '';
+
+  SHOP_ITEMS.forEach(item => {
+    const owned = gameState.shopOwned[item.id] || 0;
+    const cost = Math.floor(item.baseCost * Math.pow(item.growth, owned));
+    const canAfford = gameState.pelmeshki >= cost;
+
+    const el = document.createElement('div');
+    el.className = `shop-item ${canAfford ? '' : 'cant-afford'}`;
+    el.innerHTML = `
+      <div class="shop-item-header">
+        <span class="shop-item-name">${item.name}</span>
+        <span class="shop-item-cost">🥟 ${formatNumber(cost)}</span>
+      </div>
+      <div class="shop-item-desc">${item.desc}</div>
+      ${owned > 0 ? `<div class="shop-item-owned">x${owned}</div>` : ''}
+    `;
+    el.onclick = () => buyItem(item);
+    container.appendChild(el);
+  });
+}
+
+function buyItem(item) {
+  const owned = gameState.shopOwned[item.id] || 0;
+  const cost = Math.floor(item.baseCost * Math.pow(item.growth, owned));
+
+  if (gameState.pelmeshki >= cost) {
+    gameState.pelmeshki -= cost;
+    gameState.shopOwned[item.id] = owned + 1;
+    gameState.perClick += item.perClick;
+    gameState.perSecond += item.perSec;
+    renderShop();
+    updateAllUI();
+    checkAchievements();
+    showToast(`Куплено: ${item.name}!`);
+  }
+}
+
+// ===== ЁЖИКИ =====
+function renderHedgehogUpgrades() {
+  const container = document.getElementById('hedgehog-upgrades');
+  container.innerHTML = '';
+
+  HEDGEHOG_UPGRADES.forEach(item => {
+    const owned = gameState.hedgehogOwned[item.id] || 0;
+    const canAfford = gameState.pelmeshki >= item.cost && owned === 0;
+
+    const el = document.createElement('div');
+    el.className = `shop-item ${owned > 0 ? 'unlocked' : ''} ${canAfford ? '' : 'cant-afford'}`;
+    el.style.borderLeftColor = '#fdcb6e';
+    el.innerHTML = `
+      <div class="shop-item-header">
+        <span class="shop-item-name">${item.name}</span>
+        <span class="shop-item-cost">${owned > 0 ? '✅' : '🥟 ' + formatNumber(item.cost)}</span>
+      </div>
+      <div class="shop-item-desc">${item.desc}</div>
+    `;
+    if (owned === 0) {
+      el.onclick = () => buyHedgehog(item);
+    }
+    container.appendChild(el);
+  });
+}
+
+function buyHedgehog(item) {
+  if (gameState.pelmeshki >= item.cost && !(gameState.hedgehogOwned[item.id])) {
+    gameState.pelmeshki -= item.cost;
+    gameState.hedgehogOwned[item.id] = 1;
+    gameState.hedgehogs += item.hedgehogs || 0;
+    gameState.perSecond += item.perSec;
+    if (item.mult) {
+      gameState.prestigeMult *= item.mult;
+    }
+    renderHedgehogUpgrades();
+    updateAllUI();
+    checkAchievements();
+    showToast(`🦔 Куплено: ${item.name}!`);
+  }
+}
+
+// ===== КЛИК ПО ПЕЛЬМЕШКЕ =====
+function clickPelmeshka(event) {
+  const now = Date.now();
+  const clickPower = gameState.perClick * gameState.prestigeMult;
+  
+  gameState.pelmeshki += clickPower;
+  gameState.totalPelmeshki += clickPower;
+  gameState.totalClicks++;
+
+  // Комбо
+  if (now - gameState.lastClickTime < 500) {
+    gameState.combo++;
+  } else {
+    gameState.combo = 1;
+  }
+  gameState.lastClickTime = now;
+  if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+
+  // UI комбо
+  const comboEl = document.getElementById('combo-display');
+  if (gameState.combo >= 3) {
+    comboEl.textContent = `COMBO x${gameState.combo}`;
+    comboEl.classList.add('active');
+    clearTimeout(gameState.comboTimer);
+    gameState.comboTimer = setTimeout(() => {
+      comboEl.classList.remove('active');
+    }, 1000);
+
+    // Бонус комбо
+    const comboBonus = Math.floor(gameState.combo * 0.5);
+    gameState.pelmeshki += comboBonus;
+    gameState.totalPelmeshki += comboBonus;
+  }
+
+  // Частицы
+  if (gameState.settings.particles) {
+    createClickParticle(event, clickPower);
+    createEmojiParticle(event);
+  }
+
+  // Вибрация пельмешки
+  const pelm = document.getElementById('pelmeshka');
+  pelm.style.transform = 'scale(0.9)';
+  setTimeout(() => { pelm.style.transform = ''; }, 100);
+
+  updateAllUI();
+  checkAchievements();
+  renderShop();
+}
+
+function createClickParticle(event, amount) {
+  const particle = document.createElement('div');
+  particle.className = 'click-particle';
+  particle.textContent = `+${formatNumber(amount)}`;
+  particle.style.left = (event.clientX - 20) + 'px';
+  particle.style.top = (event.clientY - 20) + 'px';
+  particle.style.fontSize = Math.min(16 + amount * 0.01, 36) + 'px';
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 1000);
+}
+
+function createEmojiParticle(event) {
+  const emojis = ['🥟', '✨', '💫', '⭐', '🦔'];
+  const particle = document.createElement('div');
+  particle.className = 'click-emoji-particle';
+  particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  
+  const dx = (Math.random() - 0.5) * 150;
+  const dy = -(50 + Math.random() * 100);
+  const rot = (Math.random() - 0.5) * 360;
+  
+  particle.style.cssText = `
+    left: ${event.clientX}px;
+    top: ${event.clientY}px;
+    --dx: ${dx}px;
+    --dy: ${dy}px;
+    --rot: ${rot}deg;
+  `;
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 800);
+}
+
+// ===== СЪЕСТЬ ПЕЛЬМЕШКУ =====
+function eatPelmeshka() {
+  const container = document.getElementById('pelmeshka-container');
+  container.classList.add('eating');
+
+  // Взрыв частиц
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const particle = document.createElement('div');
+      particle.className = 'click-emoji-particle';
+      particle.textContent = '🥟';
+      const rect = container.getBoundingClientRect();
+      const dx = (Math.random() - 0.5) * 300;
+      const dy = (Math.random() - 0.5) * 300;
+      particle.style.cssText = `
+        left: ${rect.left + rect.width/2}px;
+        top: ${rect.top + rect.height/2}px;
+        --dx: ${dx}px;
+        --dy: ${dy}px;
+        --rot: ${Math.random()*720}deg;
+        font-size: 40px;
+      `;
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 800);
+    }, i * 50);
+  }
+
+  setTimeout(() => {
+    gameState.eaten++;
+    gameState.pelmeshkaSize = 0;
+    // Бонус за съедание
+    const bonus = Math.floor(gameState.totalPelmeshki * 0.1);
+    gameState.pelmeshki += bonus;
+    gameState.totalPelmeshki += bonus;
+    
+    container.classList.remove('eating');
+    document.getElementById('pelmeshka').style.fontSize = '150px';
+    document.getElementById('eat-btn').classList.remove('visible');
+    
+    showToast(`🍽 Ням! +${formatNumber(bonus)} бонусных пельмешек!`);
+    updateAllUI();
+    checkAchievements();
+  }, 1000);
+}
+
+// ===== ОБНОВЛЕНИЕ UI =====
+function updateAllUI() {
+  document.getElementById('pelm-count').textContent = formatNumber(Math.floor(gameState.pelmeshki));
+  document.getElementById('pelm-per-click').textContent = formatNumber(gameState.perClick * gameState.prestigeMult);
+  document.getElementById('pelm-per-sec').textContent = formatNumber(gameState.perSecond * gameState.prestigeMult);
+  document.getElementById('total-pelm').textContent = formatNumber(Math.floor(gameState.totalPelmeshki));
+  document.getElementById('hedgehog-count').textContent = gameState.hedgehogs;
+  document.getElementById('prestige-mult').textContent = gameState.prestigeMult;
+
+  // Размер
+  let currentSize = PELM_SIZES[0];
+  for (const size of PELM_SIZES) {
+    if (gameState.totalPelmeshki >= size.minTotal) currentSize = size;
+  }
+  document.getElementById('pelm-size').textContent = currentSize.name;
+  document.getElementById('pelmeshka').style.fontSize = currentSize.fontSize + 'px';
+
+  // Кнопка съесть
+  const eatBtn = document.getElementById('eat-btn');
+  if (currentSize.eatAt && gameState.totalPelmeshki >= currentSize.eatAt) {
+    eatBtn.classList.add('visible');
+  } else {
+    eatBtn.classList.remove('visible');
+  }
+
+  // Статистика
+  document.getElementById('stat-clicks').textContent = formatNumber(gameState.totalClicks);
+  document.getElementById('stat-total').textContent = formatNumber(Math.floor(gameState.totalPelmeshki));
+  document.getElementById('stat-eaten').textContent = gameState.eaten;
+  document.getElementById('stat-golden').textContent = gameState.goldenCaught;
+  document.getElementById('stat-combo').textContent = gameState.maxCombo;
+
+  const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('stat-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ===== ДОСТИЖЕНИЯ =====
+function renderAchievements() {
+  const sidebar = document.getElementById('achievements-sidebar');
+  const modal = document.getElementById('achievements-list');
+
+  let html = '';
+  ACHIEVEMENTS.forEach(ach => {
+    const unlocked = gameState.achievements[ach.id];
+    let name = ach.name;
+    let desc = ach.desc;
+
+    if (!unlocked) {
+      if (ach.rarity === 'rare') {
+        name = '❓❓❓';
+      } else if (ach.rarity === 'legendary') {
+        name = '❓❓❓';
+        desc = '❓❓❓';
+      }
+    }
+
+    html += `
+      <div class="achievement ${unlocked ? 'unlocked' : ''} rarity-${ach.rarity}">
+        <div class="achievement-name">${unlocked ? '✅ ' : '🔒 '}${name}</div>
+        <div class="achievement-desc">${desc}</div>
+        <div class="achievement-rarity">${ach.rarity === 'normal' ? '⚪ Обычное' : ach.rarity === 'rare' ? '🟣 Редкое' : '🟡 Легендарное'}</div>
+      </div>
+    `;
+  });
+
+  sidebar.innerHTML = html;
+  modal.innerHTML = html;
+}
+
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(ach => {
+    if (!gameState.achievements[ach.id] && ach.check(gameState)) {
+      gameState.achievements[ach.id] = true;
+      
+      if (gameState.settings.notifs) {
+        showAchievementPopup(ach);
+      }
+      
+      renderAchievements();
+    }
+  });
+}
+
+function showAchievementPopup(ach) {
+  const popup = document.getElementById('achievement-popup');
+  const text = document.getElementById('achievement-popup-text');
+  
+  const rarityColors = { normal: '#b2bec3', rare: '#6c5ce7', legendary: '#fdcb6e' };
+  const rarityNames = { normal: 'Обычное', rare: 'Редкое', legendary: 'Легендарное' };
+  
+  popup.style.borderColor = rarityColors[ach.rarity];
+  text.innerHTML = `
+    <div style="font-size:18px; font-weight:700;">${ach.name}</div>
+    <div style="font-size:13px; color:#888; margin-top:3px;">${ach.desc}</div>
+    <div style="font-size:12px; color:${rarityColors[ach.rarity]}; margin-top:5px;">${rarityNames[ach.rarity]}</div>
+  `;
+  
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+function openAchievementsModal() {
+  renderAchievements();
+  document.getElementById('achievements-modal').classList.add('active');
+}
+
+// ===== ИГРОВОЙ ЦИКЛ =====
+function startGameLoop() {
+  gameLoop = setInterval(() => {
+    const earned = (gameState.perSecond * gameState.prestigeMult) / 10;
+    gameState.pelmeshki += earned;
+    gameState.totalPelmeshki += earned;
+    updateAllUI();
+    renderShop();
+    renderHedgehogUpgrades();
+    checkAchievements();
+  }, 100);
+}
+
+// ===== ЗОЛОТАЯ ПЕЛЬМЕШКА =====
+function startGoldenPelmeshka() {
+  goldenTimer = setInterval(() => {
+    if (Math.random() < 0.15) {
+      spawnGoldenPelmeshka();
+    }
+  }, 10000);
+}
+
+function spawnGoldenPelmeshka() {
+  const golden = document.createElement('div');
+  golden.className = 'golden-pelmeshka';
+  golden.textContent = '✨🥟✨';
+  golden.style.left = (100 + Math.random() * (window.innerWidth - 200)) + 'px';
+  golden.style.top = (100 + Math.random() * (window.innerHeight - 200)) + 'px';
+
+  golden.onclick = () => {
+    const bonus = Math.max(100, Math.floor(gameState.pelmeshki * 0.2));
+    gameState.pelmeshki += bonus;
+    gameState.totalPelmeshki += bonus;
+    gameState.goldenCaught++;
+    
+    // Взрыв золотых частиц
+    for (let i = 0; i < 15; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'click-emoji-particle';
+      particle.textContent = '⭐';
+      const rect = golden.getBoundingClientRect();
+      particle.style.cssText = `
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        --dx: ${(Math.random()-0.5)*200}px;
+        --dy: ${(Math.random()-0.5)*200}px;
+        --rot: ${Math.random()*720}deg;
+      `;
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 800);
+    }
+
+    golden.remove();
+    showToast(`✨ ЗОЛОТАЯ ПЕЛЬМЕШКА! +${formatNumber(bonus)}!`);
+    updateAllUI();
+    checkAchievements();
+  };
+
+  document.body.appendChild(golden);
+  setTimeout(() => { if (golden.parentNode) golden.remove(); }, 7000);
+}
+
+// ===== ФОН ЧАСТИЦЫ =====
+function createBgParticles() {
+  for (let i = 0; i < 15; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'bg-particle';
+    particle.textContent = Math.random() > 0.5 ? '🥟' : '🦔';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.fontSize = (15 + Math.random() * 25) + 'px';
+    particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+    particle.style.animationDelay = Math.random() * 10 + 's';
+    document.body.appendChild(particle);
+  }
+}
+
+// ===== ТАБЫ =====
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== МОБИЛЬНЫЕ ПАНЕЛИ =====
+function showMobilePanel(panel) {
+  hideMobilePanels();
+  const overlay = document.getElementById(`mobile-${panel}`);
+  
+  if (panel === 'shop') {
+    overlay.innerHTML = document.querySelector('.shop-panel').innerHTML;
+  } else if (panel === 'achievements') {
+    overlay.innerHTML = `<h2 style="text-align:center;margin-bottom:15px;">🏆 Достижения</h2>` + document.getElementById('achievements-sidebar').innerHTML;
+  } else if (panel === 'hedgehogs') {
+    overlay.innerHTML = document.querySelector('#tab-hedgehogs').innerHTML;
+  }
+  
+  overlay.classList.add('active');
+}
+
+function hideMobilePanels() {
+  document.querySelectorAll('.mobile-panel-overlay').forEach(p => p.classList.remove('active'));
+}
+
+// ===== УТИЛИТЫ =====
+function formatNumber(n) {
+  n = Math.floor(n);
+  if (n >= 1e12) return (n/1e12).toFixed(1) + 'T';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ===== АВТОСЕЙВ =====
+setInterval(() => {
+  localStorage.setItem('pelm_autosave', JSON.stringify(gameState));
+}, 30000);
+
+// ===== ЗАГРУЗКА АВТОСЕЙВА =====
+function loadAutoSave() {
+  const data = localStorage.getItem('pelm_autosave');
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      Object.assign(gameState, parsed);
+      gameState.comboTimer = null;
+    } catch(e) {}
+  }
+}
+
+// ===== СТАРТ =====
+loadAutoSave();
+window.addEventListener('load', initSplash);
+</script>
+</body>
+  </html>
